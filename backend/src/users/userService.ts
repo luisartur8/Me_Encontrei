@@ -23,6 +23,7 @@ export class UserService {
             if (emailExists) conflictFields.email = 'Email already exists';
 
             throw new AppError('User already exists', 409, {
+                isOperational: true,
                 code: 'USER_EXISTS',
                 details: conflictFields,
             });
@@ -46,6 +47,7 @@ export class UserService {
 
         if (!user || !(await compare(password, user.password_hash))) {
             throw new AppError('Invalid username or password', 401, {
+                isOperational: true,
                 code: 'INVALID_USERNAME_OR_PASSWORD',
                 details: 'Invalid username or password',
             });
