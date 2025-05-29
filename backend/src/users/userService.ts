@@ -1,18 +1,14 @@
-import { CreateUserInput } from "./userSchema";
 import { compare, hash } from "bcryptjs";
 import { PrismaUserRepository } from "./userRepository";
 import { User } from "@prisma/client";
 import { AppError } from "src/common/AppError";
 import { FastifyReply } from "fastify";
+import { IUserService } from "./user.interfaces";
 
-interface RegisterUseCaseResponse {
-    user: User
-}
+export class UserService implements IUserService {
+    constructor(private readonly userRepository: PrismaUserRepository) { }
 
-export class UserService {
-    constructor(private userRepository: PrismaUserRepository) { }
-
-    async createUser({ username, email, password }: CreateUserInput): Promise<RegisterUseCaseResponse> {
+    async createUser(username: string, email: string, password: string) {
         const usernameExists = await this.userRepository.findByUsername(username);
         const emailExists = await this.userRepository.findByEmail(email);
 
@@ -39,7 +35,7 @@ export class UserService {
             role: 'user'
         })
 
-        return { user }
+        return user
     }
 
     async login(username: string, password: string, reply: FastifyReply) {
@@ -74,5 +70,49 @@ export class UserService {
 
     async getUsers() {
         return this.userRepository.findAllUsers();
+    }
+
+    async getUserById(id: string) {
+        const user = this.userRepository.findUserById(id);
+
+        if (!user) {
+            throw new AppError('User not found', 404, {
+                isOperational: true,
+                code: 'USER_NOT_FOUND',
+                details: 'User was not found',
+            });
+        }
+
+        return user
+    }
+
+    async updateUserById(id: string, data: Partial<User>) {
+        const user = await this.userRepository.findUserById(id);
+
+        if (!user) {
+            throw new AppError('User not found', 404, {
+                isOperational: true,
+                code: 'USER_NOT_FOUND',
+                details: 'User was not found',
+            });
+        }
+
+        const updatedUser = await this.userRepository.updateUserById(id, data);
+
+        return updatedUser;
+    }
+
+    async deleteUserById(id: string) {
+        const user = await this.userRepository.findUserById(id);
+
+        if (!user) {
+            throw new AppError('User not found', 404, {
+                isOperational: true,
+                code: 'USER_NOT_FOUND',
+                details: 'User was not found',
+            });
+        }
+
+        await this.userRepository.deleteUserById(id);
     }
 }
