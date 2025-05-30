@@ -32,7 +32,7 @@ export class UserService implements IUserService {
             email,
             password_hash,
             created_at: new Date(),
-            role: 'user'
+            role: 'USER'
         })
 
         const { password_hash: _, ...safeUser } = user;
@@ -91,13 +91,39 @@ export class UserService implements IUserService {
     }
 
     async updateUserById(id: string, data: Partial<User>, isAdmin: boolean) {
-        const user = await this.userRepository.findUserById(id);
+        const { username, email } = data;
 
-        if (!user) {
+        const userExists = await this.userRepository.findUserById(id);
+
+        if (!userExists) {
             throw new AppError('User not found', 404, {
                 isOperational: true,
                 code: 'USER_NOT_FOUND',
                 details: 'User was not found',
+            });
+        }
+
+        let usernameExists = null
+        let emailExists = null
+
+        if (username) {
+            usernameExists = await this.userRepository.findByUsername(username);
+        }
+
+        if (email) {
+            emailExists = await this.userRepository.findByEmail(email);
+        }
+
+        if (usernameExists || emailExists) {
+            const conflictFields: Record<string, string> = {};
+
+            if (usernameExists) conflictFields.username = 'Username already exists';
+            if (emailExists) conflictFields.email = 'Email already exists';
+
+            throw new AppError('User already exists', 409, {
+                isOperational: true,
+                code: 'USER_EXISTS',
+                details: conflictFields,
             });
         }
 

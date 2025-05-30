@@ -25,8 +25,8 @@ async function createUserIfNotExists(username: string, email: string, role: Role
 }
 
 async function main() {
-    await createUserIfNotExists('admin', 'admin@meecontrei.com', Role.admin, '123456');
-    await createUserIfNotExists('default_user', 'default_user@meecontrei.com', Role.user, '123456');
+    await createUserIfNotExists('admin', 'admin@meecontrei.com', Role.ADMIN, '123456');
+    await createUserIfNotExists('default_user', 'default_user@meecontrei.com', Role.USER, '123456');
 }
 
 main()

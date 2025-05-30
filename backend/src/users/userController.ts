@@ -40,7 +40,7 @@ export class UserController implements IUserController {
         try {
             const { id } = req.params;
             const data = req.body;
-            const isAdmin = (req.user as UserRole).role === 'admin';
+            const isAdmin = (req.user as UserRole).role === 'ADMIN';
             const user = await this.userService.updateUserById(id, data, isAdmin);
             return reply.status(200).send({ user });
         } catch (err) {

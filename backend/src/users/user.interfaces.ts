@@ -18,7 +18,7 @@ export interface UpdateUserRequest extends RouteGenericInterface {
 }
 
 export interface UserRole {
-  role: 'admin' | 'user';
+  role: 'ADMIN' | 'USER';
 }
 
 // SERVICE
