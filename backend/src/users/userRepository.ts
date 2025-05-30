@@ -44,6 +44,7 @@ export class PrismaUserRepository implements IUserRepository {
     async findAllUsers() {
         const users = await prisma.user.findMany({
             select: {
+                id: true,
                 username: true,
                 email: true,
                 created_at: true,

@@ -35,7 +35,9 @@ export class UserService implements IUserService {
             role: 'user'
         })
 
-        return user
+        const { password_hash: _, ...safeUser } = user;
+
+        return safeUser;
     }
 
     async login(username: string, password: string, reply: FastifyReply) {
@@ -73,20 +75,6 @@ export class UserService implements IUserService {
     }
 
     async getUserById(id: string) {
-        const user = this.userRepository.findUserById(id);
-
-        if (!user) {
-            throw new AppError('User not found', 404, {
-                isOperational: true,
-                code: 'USER_NOT_FOUND',
-                details: 'User was not found',
-            });
-        }
-
-        return user
-    }
-
-    async updateUserById(id: string, data: Partial<User>) {
         const user = await this.userRepository.findUserById(id);
 
         if (!user) {
@@ -97,9 +85,34 @@ export class UserService implements IUserService {
             });
         }
 
-        const updatedUser = await this.userRepository.updateUserById(id, data);
+        const { password_hash: _, ...safeUser } = user;
 
-        return updatedUser;
+        return safeUser;
+    }
+
+    async updateUserById(id: string, data: Partial<User>, isAdmin: boolean) {
+        const user = await this.userRepository.findUserById(id);
+
+        if (!user) {
+            throw new AppError('User not found', 404, {
+                isOperational: true,
+                code: 'USER_NOT_FOUND',
+                details: 'User was not found',
+            });
+        }
+
+        let updatedData = data;
+
+        if (!isAdmin) {
+            const { id: _, created_at: __, role: ___, ...allowedFields } = data;
+            updatedData = allowedFields;
+        }
+
+        const updatedUser = await this.userRepository.updateUserById(id, updatedData);
+
+        const { password_hash: _, ...safeUpdatedUser } = updatedUser;
+
+        return safeUpdatedUser;
     }
 
     async deleteUserById(id: string) {

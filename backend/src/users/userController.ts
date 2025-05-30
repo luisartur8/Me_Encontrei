@@ -2,7 +2,7 @@ import { FastifyReply, FastifyRequest, RouteGenericInterface } from "fastify";
 import { UserService } from "./userService";
 import { CreateUserInput, LoginInput } from "./userSchema";
 import { handleControllerError } from "src/common/handleControllerError";
-import { IUserController, UpdateUserRequest } from "./user.interfaces";
+import { IUserController, UpdateUserRequest, UserRole } from "./user.interfaces";
 
 export class UserController implements IUserController {
     constructor(private readonly userService: UserService) { }
@@ -36,12 +36,12 @@ export class UserController implements IUserController {
         }
     }
 
-    // TODO: Fazer um update mais detalhado, por enquanto qualquer um pode mudar o id e o role para admin
     async update(req: FastifyRequest<UpdateUserRequest>, reply: FastifyReply) {
         try {
             const { id } = req.params;
             const data = req.body;
-            const user = await this.userService.updateUserById(id, data);
+            const isAdmin = (req.user as UserRole).role === 'admin';
+            const user = await this.userService.updateUserById(id, data, isAdmin);
             return reply.status(200).send({ user });
         } catch (err) {
             return handleControllerError(err, reply);

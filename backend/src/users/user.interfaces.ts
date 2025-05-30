@@ -17,15 +17,19 @@ export interface UpdateUserRequest extends RouteGenericInterface {
     Body: Partial<User>;
 }
 
+export interface UserRole {
+  role: 'admin' | 'user';
+}
+
 // SERVICE
 export interface IUserService {
-  createUser(username: string, email: string, password: string): Promise<User>;
-  login(username: string, password: string, reply: FastifyReply): Promise<string>;
-  findUserByUsername(username: string): Promise<User | null>;
-  getUsers(): Promise<Pick<User, "username" | "email" | "created_at" | "role">[]>;
-  getUserById(id: string): Promise<User | null>;
-  updateUserById(id: string, data: Partial<User>): Promise<User>;
-  deleteUserById(id: string): Promise<void>;
+    createUser(username: string, email: string, password: string): Promise<Omit<User, "password_hash">>;
+    login(username: string, password: string, reply: FastifyReply): Promise<string>;
+    findUserByUsername(username: string): Promise<User | null>;
+    getUsers(): Promise<Omit<User, "password_hash">[]>;
+    getUserById(id: string): Promise<Omit<User, "password_hash"> | null>;
+    updateUserById(id: string, data: Partial<User>, isAdmin: boolean): Promise<Omit<User, "password_hash">>;
+    deleteUserById(id: string): Promise<void>;
 }
 
 // REPOSITORY
@@ -34,7 +38,7 @@ export interface IUserRepository {
     findByUsername(username: string): Promise<User | null>;
     findByEmail(email: string): Promise<User | null>;
     findUserById(id: string): Promise<User | null>;
-    findAllUsers(): Promise<Pick<User, "username" | "email" | "created_at" | "role">[]>;
+    findAllUsers(): Promise<Omit<User, "password_hash">[]>;
     updateUserById(id: string, updateData: Partial<User>): Promise<User>;
     deleteUserById(id: string): Promise<void>;
 }
