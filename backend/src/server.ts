@@ -1,5 +1,6 @@
 import { app } from './app';
 import { env } from './env';
+import { logServerError, logServerInfo } from './common/utils';
 
 const start = async () => {
     try {
@@ -9,9 +10,10 @@ const start = async () => {
             host: '0.0.0.0',
             port: PORT
         });
-        console.log(`✅ Servidor rodando em http://localhost:${PORT}`);
-    } catch (err) {
-        app.log.error(err);
+
+        logServerInfo(PORT, env.NODE_ENV);
+    } catch (err: unknown) {
+        logServerError(err, app);
         process.exit(1);
     }
 };

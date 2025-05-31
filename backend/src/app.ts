@@ -1,24 +1,14 @@
-import fastify, { FastifyReply, FastifyRequest } from "fastify";
-import userRoutes from "./users/userRoutes";
+import fastify, { FastifyError, FastifyReply, FastifyRequest } from "fastify";
 import fastifyJwt from '@fastify/jwt';
-import { env } from "./env";
 import fastifySwagger from "@fastify/swagger";
 import fastifySwaggerUi from "@fastify/swagger-ui";
+import { loggingHook } from "./hooks/logging";
+import { setStartTimeHook } from "./hooks/setStartTime";
+import { env } from "./env";
+import userRoutes from "./users/userRoutes";
+import { AppError } from "./common/AppError";
 
 export const app = fastify();
-
-app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
-    if (env.NODE_ENV === 'dev') {
-        const protocol = request.headers['x-forwarded-proto'] || 'http';
-        const host = request.headers.host || 'localhost:3000';
-        const fullUrl = `${protocol}://${host}${request.url}`;
-
-        const method = request.method;
-        const ip = request.ip;
-
-        console.log(`{${method}} ${fullUrl} - IP: ${ip}`);
-    }
-});
 
 app.register(fastifyJwt, {
     secret: env.JWT_SECRET
@@ -42,4 +32,25 @@ app.register(fastifySwaggerUi, {
     },
 })
 
+app.addHook('onRequest', setStartTimeHook);
+
+app.addHook('onResponse', loggingHook);
+
 app.register(userRoutes);
+
+app.setErrorHandler((err: FastifyError, _req: FastifyRequest, reply: FastifyReply) => {
+    if (err instanceof AppError) {
+        return reply.status(err.statusCode).send({
+            message: err.message,
+            isOperational: err.isOperational,
+            code: err.code,
+            details: err.details,
+        });
+    }
+
+    console.error(err);
+    return reply.status(500).send({
+        message: 'Internal server error',
+        isOperational: false
+    });
+})
