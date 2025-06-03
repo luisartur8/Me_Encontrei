@@ -1,4 +1,4 @@
-import { Prisma, User } from "@prisma/client";
+import { Prisma, Role, User } from "@prisma/client";
 import { FastifyReply, FastifyRequest, RouteGenericInterface } from "fastify";
 import { CreateUserInput, LoginInput } from "./userSchema";
 
@@ -14,11 +14,23 @@ export interface IUserController {
 
 export interface UpdateUserRequest extends RouteGenericInterface {
     Params: { id: string };
-    Body: Partial<User>;
+    Body: {
+        username?: string;
+        email?: string;
+        password?: string;
+        created_at?: Date;
+        role?: Role;
+    };
 }
 
+export type UpdateUserData = Partial<Omit<User, 'id' | 'password_hash'>> & {
+    password?: string;
+};
+
+export type UpdateUserDataWithHash = Omit<UpdateUserData, 'password'> & { password_hash?: string };
+
 export interface UserRole {
-  role: 'ADMIN' | 'USER';
+    role: 'ADMIN' | 'USER';
 }
 
 // SERVICE

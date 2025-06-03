@@ -1,9 +1,10 @@
 import { compare, hash } from "bcryptjs";
 import { PrismaUserRepository } from "./userRepository";
 import { User } from "@prisma/client";
+import { isStrongPassword, isValidEmail, isValidUsername } from "src/common/utils";
 import { AppError } from "src/common/AppError";
 import { FastifyReply } from "fastify";
-import { IUserService } from "./user.interfaces";
+import { IUserService, UpdateUserData, UpdateUserDataWithHash, UpdateUserRequest } from "./user.interfaces";
 
 export class UserService implements IUserService {
     constructor(private readonly userRepository: PrismaUserRepository) { }
@@ -12,15 +13,27 @@ export class UserService implements IUserService {
         const usernameExists = await this.userRepository.findByUsername(username);
         const emailExists = await this.userRepository.findByEmail(email);
 
-        if (usernameExists || emailExists) {
-            const conflictFields: Record<string, string> = {};
+        const conflictFields: Record<string, string> = {};
 
-            if (usernameExists) conflictFields.username = 'Username already exists';
-            if (emailExists) conflictFields.email = 'Email already exists';
+        if (usernameExists) conflictFields.username = 'Username already exists';
+        if (emailExists) conflictFields.email = 'Email already exists';
 
+        if (Object.keys(conflictFields).length > 0) {
             throw new AppError('User already exists', 409, {
                 isOperational: true,
                 code: 'USER_EXISTS',
+                details: conflictFields,
+            });
+        }
+
+        if (!isValidUsername(username)) conflictFields.username = 'Invalid username format';
+        if (!isValidEmail(email)) conflictFields.email = 'Invalid email format';
+        if (!isStrongPassword(password)) conflictFields.password = 'Password does not meet strength requirements';
+
+        if (Object.keys(conflictFields).length > 0) {
+            throw new AppError('Invalid user data', 400, {
+                isOperational: true,
+                code: 'INVALID_DATA',
                 details: conflictFields,
             });
         }
@@ -90,12 +103,12 @@ export class UserService implements IUserService {
         return safeUser;
     }
 
-    async updateUserById(id: string, data: Partial<User>, isAdmin: boolean) {
-        const { username, email } = data;
+    async updateUserById(id: string, data: UpdateUserData, isAdmin: boolean) {
+        const { username, email, password, ...rest } = data;
 
-        const userExists = await this.userRepository.findUserById(id);
+        const user = await this.userRepository.findUserById(id);
 
-        if (!userExists) {
+        if (!user) {
             throw new AppError('User not found', 404, {
                 isOperational: true,
                 code: 'USER_NOT_FOUND',
@@ -107,16 +120,24 @@ export class UserService implements IUserService {
         let emailExists = null
 
         if (username) {
-            usernameExists = await this.userRepository.findByUsername(username);
+            const existingUsername = await this.userRepository.findByUsername(username);
+
+            if (existingUsername && existingUsername.id !== user.id) {
+                usernameExists = existingUsername;
+            }
         }
 
         if (email) {
-            emailExists = await this.userRepository.findByEmail(email);
+            const existingEmail = await this.userRepository.findByEmail(email);
+
+            if (existingEmail && existingEmail.id !== user.id) {
+                usernameExists = existingEmail;
+            }
         }
 
-        if (usernameExists || emailExists) {
-            const conflictFields: Record<string, string> = {};
+        const conflictFields: Record<string, string> = {};
 
+        if (usernameExists || emailExists) {
             if (usernameExists) conflictFields.username = 'Username already exists';
             if (emailExists) conflictFields.email = 'Email already exists';
 
@@ -127,10 +148,27 @@ export class UserService implements IUserService {
             });
         }
 
-        let updatedData = data;
+        // TODO: É possivel adicionar mais validações, já que um administrador pode mudar tudo.
+        if (username && !isValidUsername(username)) conflictFields.username = 'Invalid username format';
+        if (email && !isValidEmail(email)) conflictFields.email = 'Invalid email format';
+        if (password && !isStrongPassword(password)) conflictFields.password = 'Password does not meet strength requirements';
+
+        if (Object.keys(conflictFields).length > 0) {
+            throw new AppError('Invalid user data', 400, {
+                isOperational: true,
+                code: 'INVALID_DATA',
+                details: conflictFields,
+            });
+        }
+
+        let updatedData: UpdateUserDataWithHash = { ...rest };
+
+        if (username) updatedData.username = username;
+        if (email) updatedData.email = email;
+        if (password) updatedData.password_hash = await hash(password, 6);
 
         if (!isAdmin) {
-            const { id: _, created_at: __, role: ___, ...allowedFields } = data;
+            const { created_at: _, role: __, ...allowedFields } = updatedData;
             updatedData = allowedFields;
         }
 

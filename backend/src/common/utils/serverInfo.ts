@@ -23,9 +23,9 @@ export function logServerInfo(port: number, env: string) {
     };
 
     const resolvedEnv = environmentMap[env] || env;
-    const ip = getLocalIpAddress();
+    // const ip = getLocalIpAddress(); <- isso aqui vai mostrar o IP do PC
+    const ip = "localhost"; // Por enquanto fica assim só para não mostrar o ip
 
-    console.log('');
     console.log(chalk.greenBright(`
  __  __          _____                       _            _ 
 |  \\/  | ___    | ____|_ __   ___ ___  _ __ | |_ _ __ ___(_)
@@ -37,7 +37,7 @@ export function logServerInfo(port: number, env: string) {
     console.log(chalk.green.bold('✅ Server started successfully!'));
     console.log(chalk.blue(`🌐 Running at: `) + chalk.underline(`http://${ip}:${port}`));
     console.log(chalk.magenta(`🛠️  Environment:`), resolvedEnv);
-    console.log(chalk.yellow(`👥 Created by:`), 'Luís Artur Vieira Junqueira');
+    console.log(chalk.yellow(`👥 Team:`), 'Luís Artur Vieira Junqueira, Natanael e Guilherme Gonçalves.');
     console.log('');
 }
 
