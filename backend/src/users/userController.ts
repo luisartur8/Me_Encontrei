@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest, RouteGenericInterface } from "fastify";
 import { UserService } from "./userService";
-import { CreateUserInput, LoginInput } from "./userSchema";
+import { createUserSchema, idSchema, LoginInput } from "./userSchema";
 import { IUserController, UpdateUserRequest, UserRole } from "./user.interfaces";
 
 export class UserController implements IUserController {
@@ -11,14 +11,14 @@ export class UserController implements IUserController {
         return reply.status(200).send({ user });
     }
 
-    async show(req: FastifyRequest<{ Params: { id: string } } & RouteGenericInterface>, reply: FastifyReply) {
-        const { id } = req.params;
+    async show(req: FastifyRequest, reply: FastifyReply) {
+        const { id } = idSchema.parse(req.params);
         const user = await this.userService.getUserById(id);
         return reply.status(200).send({ user });
     }
 
-    async store(req: FastifyRequest<{ Body: CreateUserInput }>, reply: FastifyReply) {
-        const { username, email, password } = req.body;
+    async store(req: FastifyRequest, reply: FastifyReply) {
+        const { username, email, password } = createUserSchema.parse(req.body);
         const user = await this.userService.createUser(username, email, password);
         return reply.status(201).send({ user });
     }

@@ -1,10 +1,9 @@
 import { compare, hash } from "bcryptjs";
 import { PrismaUserRepository } from "./userRepository";
-import { User } from "@prisma/client";
 import { isStrongPassword, isValidEmail, isValidUsername } from "src/common/utils";
 import { AppError } from "src/common/AppError";
 import { FastifyReply } from "fastify";
-import { IUserService, UpdateUserData, UpdateUserDataWithHash, UpdateUserRequest } from "./user.interfaces";
+import { IUserService, UpdateUserData, UpdateUserDataWithHash } from "./user.interfaces";
 
 export class UserService implements IUserService {
     constructor(private readonly userRepository: PrismaUserRepository) { }
@@ -152,6 +151,9 @@ export class UserService implements IUserService {
         if (username && !isValidUsername(username)) conflictFields.username = 'Invalid username format';
         if (email && !isValidEmail(email)) conflictFields.email = 'Invalid email format';
         if (password && !isStrongPassword(password)) conflictFields.password = 'Password does not meet strength requirements';
+
+        // exemplo
+        // if (isAdmin && created_at && !isValidDate(created_at)) conflictFields.created_at = 'escrever aqui'
 
         if (Object.keys(conflictFields).length > 0) {
             throw new AppError('Invalid user data', 400, {

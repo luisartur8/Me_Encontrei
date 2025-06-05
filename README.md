@@ -6,4 +6,4 @@ TCC - Esucri
 - npx prisma migrate dev (O banco tem que estar criado, gera as tabelas de acordo com schema.prisma)
 - npm run seed (Cria usuário no banco (admin e default_user))
 - npm run start:dev
-- localhost:3000/docs (Ve a documentação usando swagger, mostra todas as rotas)
+- localhost:3333/docs (Ve a documentação usando swagger, mostra todas as rotas)
