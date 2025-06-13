@@ -1,14 +1,17 @@
 import { compare, hash } from "bcryptjs";
+import { FastifyReply } from "fastify";
+import { IUserService, UpdateUserData, UpdateUserDataWithHash } from "./userInterfaces";
+import { CreateUserInput, LoginInput } from "./userSchema";
 import { PrismaUserRepository } from "./userRepository";
 import { isStrongPassword, isValidEmail, isValidUsername } from "src/common/utils";
 import { AppError } from "src/common/AppError";
-import { FastifyReply } from "fastify";
-import { IUserService, UpdateUserData, UpdateUserDataWithHash } from "./user.interfaces";
 
 export class UserService implements IUserService {
     constructor(private readonly userRepository: PrismaUserRepository) { }
 
-    async createUser(username: string, email: string, password: string) {
+    async createUser(data: CreateUserInput) {
+        const { username, email, password } = data;
+
         const usernameExists = await this.userRepository.findByUsername(username);
         const emailExists = await this.userRepository.findByEmail(email);
 
@@ -52,7 +55,9 @@ export class UserService implements IUserService {
         return safeUser;
     }
 
-    async login(username: string, password: string, reply: FastifyReply) {
+    async login(data: LoginInput, reply: FastifyReply) {
+        const { username, password } = data;
+
         const user = await this.userRepository.findByUsername(username);
 
         if (!user || !(await compare(password, user.password_hash))) {

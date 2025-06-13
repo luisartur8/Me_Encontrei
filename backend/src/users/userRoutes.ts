@@ -2,9 +2,7 @@ import { FastifyInstance } from "fastify";
 import { UserController } from "./userController";
 import { UserService } from "./userService";
 import { PrismaUserRepository } from "./userRepository";
-import { VerifyJWT } from "src/middlewares/verify-jwt";
-import { VerifyAdmin } from "src/middlewares/verify-admin";
-import { VerifyCurrentUser } from "src/middlewares/verify-current-user";
+import { VerifyJWT, VerifyAdmin, VerifyCurrentUser } from "src/middlewares";
 
 async function userRoutes(app: FastifyInstance) {
     const prismaUserRepository = new PrismaUserRepository()

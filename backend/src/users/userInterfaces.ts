@@ -5,11 +5,11 @@ import { CreateUserInput, LoginInput } from "./userSchema";
 // CONTROLLER
 export interface IUserController {
     index(_req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
-    show(req: FastifyRequest<{ Params: { id: string } } & RouteGenericInterface>, reply: FastifyReply): Promise<FastifyReply>;
-    store(req: FastifyRequest<{ Body: CreateUserInput }>, reply: FastifyReply): Promise<FastifyReply>;
+    show(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
+    store(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
     update(req: FastifyRequest<UpdateUserRequest>, reply: FastifyReply): Promise<FastifyReply>;
-    delete(req: FastifyRequest<{ Params: { id: string } } & RouteGenericInterface>, reply: FastifyReply): Promise<FastifyReply>;
-    login(req: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply): Promise<FastifyReply>;
+    delete(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
+    login(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
 }
 
 export interface UpdateUserRequest extends RouteGenericInterface {
@@ -35,8 +35,8 @@ export interface UserRole {
 
 // SERVICE
 export interface IUserService {
-    createUser(username: string, email: string, password: string): Promise<Omit<User, "password_hash">>;
-    login(username: string, password: string, reply: FastifyReply): Promise<string>;
+    createUser(data: CreateUserInput): Promise<Omit<User, "password_hash">>;
+    login(data: LoginInput, reply: FastifyReply): Promise<string>;
     findUserByUsername(username: string): Promise<User | null>;
     getUsers(): Promise<Omit<User, "password_hash">[]>;
     getUserById(id: string): Promise<Omit<User, "password_hash"> | null>;

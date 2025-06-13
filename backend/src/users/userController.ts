@@ -1,7 +1,7 @@
-import { FastifyReply, FastifyRequest, RouteGenericInterface } from "fastify";
+import { FastifyReply, FastifyRequest } from "fastify";
+import { IUserController, UpdateUserRequest, UserRole } from "./userInterfaces";
+import { createUserSchema, idSchema, loginSchema } from "./userSchema";
 import { UserService } from "./userService";
-import { createUserSchema, idSchema, LoginInput } from "./userSchema";
-import { IUserController, UpdateUserRequest, UserRole } from "./user.interfaces";
 
 export class UserController implements IUserController {
     constructor(private readonly userService: UserService) { }
@@ -18,8 +18,8 @@ export class UserController implements IUserController {
     }
 
     async store(req: FastifyRequest, reply: FastifyReply) {
-        const { username, email, password } = createUserSchema.parse(req.body);
-        const user = await this.userService.createUser(username, email, password);
+        const data = createUserSchema.parse(req.body);
+        const user = await this.userService.createUser(data);
         return reply.status(201).send({ user });
     }
 
@@ -31,15 +31,15 @@ export class UserController implements IUserController {
         return reply.status(200).send({ user });
     }
 
-    async delete(req: FastifyRequest<{ Params: { id: string } } & RouteGenericInterface>, reply: FastifyReply) {
-        const { id } = req.params;
+    async delete(req: FastifyRequest, reply: FastifyReply) {
+        const { id } = idSchema.parse(req.params);
         await this.userService.deleteUserById(id);
         return reply.status(204).send();
     }
 
-    async login(req: FastifyRequest<{ Body: LoginInput }>, reply: FastifyReply) {
-        const { username, password } = req.body;
-        const token = await this.userService.login(username, password, reply);
+    async login(req: FastifyRequest, reply: FastifyReply) {
+        const data = loginSchema.parse(req.body);
+        const token = await this.userService.login(data, reply);
         return reply.status(200).send({ token });
     }
 }

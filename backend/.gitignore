@@ -137,4 +137,4 @@ dist
 
 # Prisma
 /generated/prisma
-prisma/migrations/*
+prisma/migrations
