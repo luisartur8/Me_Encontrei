@@ -2,7 +2,7 @@ import { Role } from '@prisma/client';
 import { hash } from 'bcryptjs';
 import { prisma } from 'src/common/prismaClient';
 
-async function createUserIfNotExists(username: string, email: string, role: Role, password = '123456') {
+async function createUserIfNotExists(username: string, email: string, role: Role, password: string) {
     const exists = await prisma.user.findUnique({ where: { username } });
     if (exists) {
         console.log(`❌ User "${username}" already exists.`);
@@ -25,8 +25,8 @@ async function createUserIfNotExists(username: string, email: string, role: Role
 }
 
 async function main() {
-    await createUserIfNotExists('admin', 'admin@meecontrei.com', Role.ADMIN, '123456');
-    await createUserIfNotExists('default_user', 'default_user@meecontrei.com', Role.USER, '123456');
+    await createUserIfNotExists('admin', 'admin@meecontrei.com', Role.ADMIN, '@Password1');
+    await createUserIfNotExists('default_user', 'default_user@meecontrei.com', Role.USER, '@Password1');
 }
 
 main()
