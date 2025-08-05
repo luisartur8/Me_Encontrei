@@ -9,8 +9,6 @@ async function userRoutes(app: FastifyInstance) {
     const userService = new UserService(prismaUserRepository);
     const userController = new UserController(userService);
 
-    app.post('/users', userController.store.bind(userController));
-    app.post('/login', userController.login.bind(userController));
     app.get('/users', { preHandler: [VerifyJWT, VerifyAdmin] }, userController.index.bind(userController));
     app.get('/users/:id', { preHandler: [VerifyJWT, VerifyCurrentUser] }, userController.show.bind(userController));
     app.patch('/users/:id', { preHandler: [VerifyJWT, VerifyCurrentUser] }, userController.update.bind(userController));

@@ -6,6 +6,7 @@ import fastifySwaggerUi from "@fastify/swagger-ui";
 import { loggingHook } from "./hooks/logging";
 import { setStartTimeHook } from "./hooks/setStartTime";
 import { env } from "./env";
+import authRoutes from "./auth/authRoutes";
 import userRoutes from "./users/userRoutes";
 import { AppError } from "./common/AppError";
 import { ZodError } from "zod";
@@ -40,9 +41,9 @@ app.register(fastifySwaggerUi, {
 })
 
 app.addHook('onRequest', setStartTimeHook);
-
 app.addHook('onResponse', loggingHook);
 
+app.register(authRoutes);
 app.register(userRoutes);
 
 app.setErrorHandler((err: FastifyError | ZodError, _req: FastifyRequest, reply: FastifyReply) => {

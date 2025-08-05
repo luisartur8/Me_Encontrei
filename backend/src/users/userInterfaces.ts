@@ -1,15 +1,12 @@
 import { Prisma, Role, User } from "@prisma/client";
 import { FastifyReply, FastifyRequest, RouteGenericInterface } from "fastify";
-import { CreateUserInput, LoginInput } from "./userSchema";
 
 // CONTROLLER
 export interface IUserController {
     index(_req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
     show(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
-    store(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
     update(req: FastifyRequest<UpdateUserRequest>, reply: FastifyReply): Promise<FastifyReply>;
     delete(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
-    login(req: FastifyRequest, reply: FastifyReply): Promise<FastifyReply>;
 }
 
 export interface UpdateUserRequest extends RouteGenericInterface {
@@ -35,8 +32,6 @@ export interface UserRole {
 
 // SERVICE
 export interface IUserService {
-    createUser(data: CreateUserInput): Promise<Omit<User, "password_hash">>;
-    login(data: LoginInput, reply: FastifyReply): Promise<string>;
     findUserByUsername(username: string): Promise<User | null>;
     getUsers(): Promise<Omit<User, "password_hash">[]>;
     getUserById(id: string): Promise<Omit<User, "password_hash"> | null>;
